@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "tun_calendar",  # 确保这里包含了 tun_calendar 应用
 ]
 
 MIDDLEWARE = [
@@ -55,7 +56,7 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [],
-        "APP_DIRS": True,
+        "APP_DIRS": True,  # 确保这里为 True，这样 Django 会在应用的 templates 目录中查找模板
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.debug",
