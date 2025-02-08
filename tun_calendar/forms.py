@@ -6,3 +6,10 @@ class UserRecordForm(forms.ModelForm):
     class Meta:
         model = UserRecord
         fields = ['record_type', 'event_info', 'event_time', 'period', 'days_until_event']
+        widgets = {
+            'record_type': forms.TextInput(attrs={'autocomplete': 'off'}),
+            'event_info': forms.TextInput(attrs={'autocomplete': 'off'}),
+            'event_time': forms.DateInput(attrs={'autocomplete': 'off', 'type': 'date'}),
+            'period': forms.TextInput(attrs={'autocomplete': 'off'}),
+            'days_until_event': forms.NumberInput(attrs={'autocomplete': 'off'}),
+        }
