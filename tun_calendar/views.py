@@ -77,7 +77,7 @@ def edit_record(request, record_id):
             return redirect('record_list')
     else:
         form = UserRecordForm(instance=record)
-    return render(request, 'edit_record.html', {'form': form, 'record': record})
+    return render(request, 'record_list.html', {'form': form, 'record': record})
 
 # 删除记录视图，需要用户登录才能访问
 @login_required
