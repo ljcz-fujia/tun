@@ -63,7 +63,7 @@ def record_list(request):
             return redirect('record_list')
     else:
         form = UserRecordForm()
-    records = UserRecord.objects.filter(user=request.user)
+    records = UserRecord.objects.filter(user=request.user).order_by('-id')
     return render(request, 'record_list.html', {'records': records, 'form': form})
 
 # 编辑记录视图，需要用户登录才能访问
