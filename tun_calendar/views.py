@@ -54,7 +54,6 @@ def user_logout(request):
 # 记录列表视图，需要用户登录才能访问
 @login_required
 def record_list(request):
-    records = UserRecord.objects.filter(user=request.user)
     if request.method == 'POST':
         form = UserRecordForm(request.POST)
         if form.is_valid():
@@ -64,6 +63,7 @@ def record_list(request):
             return redirect('record_list')
     else:
         form = UserRecordForm()
+    records = UserRecord.objects.filter(user=request.user)
     return render(request, 'record_list.html', {'records': records, 'form': form})
 
 # 编辑记录视图，需要用户登录才能访问

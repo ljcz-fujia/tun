@@ -9,7 +9,7 @@ class UserRecordForm(forms.ModelForm):
         widgets = {
             'record_type': forms.TextInput(attrs={'autocomplete': 'off'}),
             'event_info': forms.TextInput(attrs={'autocomplete': 'off'}),
-            'event_time': forms.DateInput(attrs={'autocomplete': 'off', 'type': 'date'}),
+            'event_time': forms.DateTimeInput(attrs={'autocomplete': 'off', 'type': 'datetime-local'}),
             'period': forms.TextInput(attrs={'autocomplete': 'off'}),
             'days_until_event': forms.NumberInput(attrs={'autocomplete': 'off'}),
         }
