@@ -14,8 +14,6 @@ class UserRecord(models.Model):
     event_time = models.DateTimeField(null=True, blank=True)
     # 周期字段
     period = models.CharField(max_length=100)
-    # 距离事件天数字段
-    days_until_event = models.IntegerField()
 
     def __str__(self):
         return self.event_info

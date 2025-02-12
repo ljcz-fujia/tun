@@ -78,6 +78,11 @@
             text-align: center; /* 水平居中 */
             line-height: normal; /* 垂直居中辅助，根据实际情况调整 */
         }
+
+        span[name="days_until_event"] {
+            text-align: center; /* 水平居中 */
+            line-height: normal; /* 垂直居中辅助，根据实际情况调整 */
+        }
     </style>
     <script>
         function showEditForm(recordId) {
@@ -94,10 +99,61 @@
             editRow.style.display = 'none';
         }
 
-        function populatePeriodFields(recordId, period) {
+        function calculateDaysUntilEvent(recordId) {
+            let eventTimeInput, periodNumInput, periodUnitSelect, daysUntilEventInput;
+            if (recordId) {
+                eventTimeInput = document.querySelector(`#edit-row-${recordId} input[name="event_time"]`);
+                periodNumInput = document.getElementById(`period_num_${recordId}`);
+                periodUnitSelect = document.getElementById(`period_unit_${recordId}`);
+                daysUntilEventInput = document.querySelector(`#edit-row-${recordId} span[name="days_until_event"]`);
+            } else {
+                eventTimeInput = document.getElementById('event_time');
+                periodNumInput = document.getElementById('period_num');
+                periodUnitSelect = document.getElementById('period_unit');
+                daysUntilEventInput = document.querySelector('span[name="days_until_event"]');
+            }
+
+            const eventTime = new Date(eventTimeInput.value);
+            const periodNum = parseInt(periodNumInput.value);
+            const periodUnit = periodUnitSelect.value;
+
+            let targetDate = new Date(eventTime);
+            switch (periodUnit) {
+                case '分钟':
+                    targetDate.setMinutes(targetDate.getMinutes() + periodNum);
+                    break;
+                case '小时':
+                    targetDate.setHours(targetDate.getHours() + periodNum);
+                    break;
+                case '天':
+                    targetDate.setDate(targetDate.getDate() + periodNum);
+                    break;
+                case '周':
+                    targetDate.setDate(targetDate.getDate() + periodNum * 7);
+                    break;
+                case '月':
+                    targetDate.setMonth(targetDate.getMonth() + periodNum);
+                    break;
+                case '年':
+                    targetDate.setFullYear(targetDate.getFullYear() + periodNum);
+                    break;
+            }
+
+            const now = new Date();
+            const timeDiff = targetDate - now;
+            const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+            if (daysUntilEventInput) {
+                daysUntilEventInput.textContent = daysDiff > 0 ? daysDiff : 0;
+            }
+        }
+
+        function populatePeriodAndEventTimeFields(recordId, period) {
+            // 点编辑按钮时根据响应数据动态组合并显示周期字段(数字+单位)，并更新距离时间天数字段
             const periodNumInput = document.getElementById(`period_num_${recordId}`);
             const periodUnitSelect = document.getElementById(`period_unit_${recordId}`);
             const periodHiddenInput = document.getElementById(`period_${recordId}`);
+            const eventTimeInput = document.getElementById(`event_time_${recordId}`);
 
             const numberPart = parseInt(period.match(/\d+/)[0]);
             const unitPart = period.replace(/\d+/, '');
@@ -105,19 +161,25 @@
             periodNumInput.value = numberPart;
             periodUnitSelect.value = unitPart;
             periodHiddenInput.value = period;
+            calculateDaysUntilEvent(recordId);
 
+            // 编辑功能内更新周期字段(数字或单位)时，动态更新period字段，或更新事件发生事件时，并更新距离时间天数字段
             const updatePeriod = () => {
                 const num = periodNumInput.value;
                 const unit = periodUnitSelect.value;
                 periodHiddenInput.value = `${num}${unit}`;
+                calculateDaysUntilEvent(recordId);
             };
 
             periodNumInput.addEventListener('input', updatePeriod);
             periodUnitSelect.addEventListener('change', updatePeriod);
+            eventTimeInput.addEventListener('input', function() {
+                calculateDaysUntilEvent(recordId);
+            });
         }
 
         document.addEventListener('DOMContentLoaded', function () {
-            // 新增记录时设置初始的周期值和事件时间
+            // 加载后，新增记录时设置初始的周期(从数字+单位组合而来)和事件时间，并更新这两个字段时，更新距离事件天数字段
             const newPeriodNumInput = document.getElementById('period_num');
             const newPeriodUnitSelect = document.getElementById('period_unit');
             const newPeriodHiddenInput = document.getElementById('period');
@@ -127,12 +189,16 @@
                 const num = newPeriodNumInput.value;
                 const unit = newPeriodUnitSelect.value;
                 newPeriodHiddenInput.value = `${num}${unit}`;
+                calculateDaysUntilEvent();
             };
 
             newPeriodNumInput.addEventListener('input', updateNewPeriod);
             newPeriodUnitSelect.addEventListener('change', updateNewPeriod);
+            newEventTimeInput.addEventListener('input', function() {
+                calculateDaysUntilEvent();
+            });
 
-            // 设置事件时间为当前时间
+            // 设置新增记录的事件时间为当前时间，并更新距离事件天数字段
             const now = new Date();
             const year = now.getFullYear();
             const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -142,6 +208,7 @@
             const datetime = `${year}-${month}-${day}T${hours}:${minutes}`;
             if (newEventTimeInput) {
                 newEventTimeInput.value = datetime;
+                calculateDaysUntilEvent();
             }
         });
     </script>
@@ -185,7 +252,7 @@
                             </select>
                             <input type="hidden" id="period" name="period">
                         </td>
-                        <td>{{ form.days_until_event }}</td>
+                        <td><span name="days_until_event" id="days_until_event"></span></td>
                         <td>
                             <button type="submit">保存</button>
                         </td>
@@ -199,7 +266,7 @@
                         <td>{{ record.period }}</td>
                         <td>{{ record.days_until_event }}</td>
                         <td>
-                            <a href="#" onclick="showEditForm({{ record.id }}); populatePeriodFields({{ record.id }}, '{{ record.period }}'); return false;">编辑</a>
+                            <a href="#" onclick="showEditForm({{ record.id }}); populatePeriodAndEventTimeFields({{ record.id }}, '{{ record.period }}'); return false;">编辑</a>
                             <a href="{% url 'delete_record' record.id %}">删除</a>
                         </td>
                     </tr>
@@ -209,7 +276,7 @@
                             <input type="hidden" name="action" value="edit">
                             <td><input type="text" name="record_type" value="{{ record.record_type }}" required autocomplete="off"></td>
                             <td><input type="text" name="event_info" value="{{ record.event_info }}" required autocomplete="off"></td>
-                            <td><input type="datetime-local" name="event_time" value="{{ record.event_time|date:'Y-m-d H:i' }}" required autocomplete="off"></td>
+                            <td><input type="datetime-local" id="event_time_{{ record.id }}" name="event_time" value="{{ record.event_time|date:'Y-m-d H:i' }}" required autocomplete="off"></td>
                             <td>
                                 <input type="number" id="period_num_{{ record.id }}" name="period_num" min="0" required autocomplete="off">
                                 <select id="period_unit_{{ record.id }}" name="period_unit">
@@ -222,7 +289,7 @@
                                 </select>
                                 <input type="hidden" id="period_{{ record.id }}" name="period">
                             </td>
-                            <td><input type="number" name="days_until_event" value="{{ record.days_until_event }}" required autocomplete="off"></td>
+                            <td><span name="days_until_event" id="days_until_event"></span></td>
                             <td>
                                 <button type="submit">保存</button>
                                 <button type="button" onclick="cancelEdit({{ record.id }})">取消</button>
