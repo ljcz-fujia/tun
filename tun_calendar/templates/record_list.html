@@ -71,6 +71,13 @@
        .edit-form {
             display: none;
         }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="datetime-local"] {
+            text-align: center; /* 水平居中 */
+            line-height: normal; /* 垂直居中辅助，根据实际情况调整 */
+        }
     </style>
     <script>
         function showEditForm(recordId) {
@@ -167,7 +174,7 @@
                             <input type="datetime-local" id="event_time" name="event_time" required autocomplete="off">
                         </td>
                         <td>
-                            <input type="number" id="period_num" name="period_num" min="1" required autocomplete="off">
+                            <input type="number" id="period_num" name="period_num" min="0" value="0" required autocomplete="off">
                             <select id="period_unit" name="period_unit">
                                 <option value="分钟">分钟</option>
                                 <option value="小时">小时</option>
@@ -204,7 +211,7 @@
                             <td><input type="text" name="event_info" value="{{ record.event_info }}" required autocomplete="off"></td>
                             <td><input type="datetime-local" name="event_time" value="{{ record.event_time|date:'Y-m-d H:i' }}" required autocomplete="off"></td>
                             <td>
-                                <input type="number" id="period_num_{{ record.id }}" name="period_num" min="1" required autocomplete="off">
+                                <input type="number" id="period_num_{{ record.id }}" name="period_num" min="0" required autocomplete="off">
                                 <select id="period_unit_{{ record.id }}" name="period_unit">
                                     <option value="分钟">分钟</option>
                                     <option value="小时">小时</option>
