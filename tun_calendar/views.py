@@ -64,6 +64,8 @@ def record_list(request):
     else:
         form = UserRecordForm()
     records = UserRecord.objects.filter(user=request.user).order_by('-id')
+    for record in records:
+        record.days_until_event = record.calculate_days_until_event()
     return render(request, 'record_list.html', {'records': records, 'form': form})
 
 # 编辑记录视图，需要用户登录才能访问
