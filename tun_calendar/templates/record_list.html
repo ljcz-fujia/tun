@@ -107,48 +107,20 @@
         }
 
         function calculateDaysUntilEvent(recordId) {
-            let eventTimeInput, periodNumInput, periodUnitSelect, daysUntilEventInput;
+            // 距离事件天数计算公式：今日日期-事件发生日期，与周期和具体时间无关
+            let eventTimeInput, daysUntilEventInput;
             if (recordId) {
                 eventTimeInput = document.getElementById(`event_time_${recordId}`);
-                periodNumInput = document.getElementById(`period_num_${recordId}`);
-                periodUnitSelect = document.getElementById(`period_unit_${recordId}`);
                 daysUntilEventInput = document.getElementById(`days_until_event_${recordId}`);
             } else {
                 eventTimeInput = document.getElementById('event_time');
-                periodNumInput = document.getElementById('period_num');
-                periodUnitSelect = document.getElementById('period_unit');
                 daysUntilEventInput = document.getElementById('days_until_event');
             }
 
-            const eventTime = dayjs(eventTimeInput.value);
-            const periodNum = parseInt(periodNumInput.value);
-            const periodUnit = periodUnitSelect.value;
-
-            let targetDate;
-            switch (periodUnit) {
-                case '分钟':
-                    targetDate = eventTime.add(periodNum, 'minute');
-                    break;
-                case '小时':
-                    targetDate = eventTime.add(periodNum, 'hour');
-                    break;
-                case '天':
-                    targetDate = eventTime.add(periodNum, 'day');
-                    break;
-                case '周':
-                    targetDate = eventTime.add(periodNum, 'week');
-                    break;
-                case '月':
-                    targetDate = eventTime.add(periodNum, 'month');
-                    break;
-                case '年':
-                    targetDate = eventTime.add(periodNum, 'year');
-                    break;
-            }
-
-            const now = dayjs();
-            const timeDiff = targetDate.diff(now, 'day');
-            const daysDiff = timeDiff > 0 ? Math.ceil(timeDiff) : 0;
+            // 将事件时间设置为当天的开始时刻（00:00:00），实现仅按日期计算差值，与时间无关
+            const eventTime = dayjs(eventTimeInput.value).startOf('day'); 
+            const now = dayjs().startOf('day');
+            const daysDiff = eventTime.diff(now, 'day');
 
             if (daysUntilEventInput) {
                 daysUntilEventInput.textContent = daysDiff;
@@ -156,7 +128,7 @@
         }
 
         function populatePeriodAndEventTimeFields(recordId, period) {
-            // 点编辑按钮时根据响应数据动态组合并显示周期字段(数字+单位)，并更新距离时间天数字段
+            // 点编辑按钮时根据响应数据动态组合并显示周期字段(数字+单位)
             const periodNumInput = document.getElementById(`period_num_${recordId}`);
             const periodUnitSelect = document.getElementById(`period_unit_${recordId}`);
             const periodHiddenInput = document.getElementById(`period_${recordId}`);
@@ -170,23 +142,23 @@
             periodHiddenInput.value = period;
             calculateDaysUntilEvent(recordId);
 
-            // 编辑功能内更新周期字段(数字或单位)时，动态更新period字段，或更新事件发生事件时，并更新距离时间天数字段
+            // 编辑功能内更新周期字段(数字或单位)时，动态更新period字段
             const updatePeriod = () => {
                 const num = periodNumInput.value;
                 const unit = periodUnitSelect.value;
                 periodHiddenInput.value = `${num}${unit}`;
-                calculateDaysUntilEvent(recordId);
             };
 
             periodNumInput.addEventListener('input', updatePeriod);
             periodUnitSelect.addEventListener('change', updatePeriod);
+            // 更新事件发生时间时，并更新距离时间天数字段
             eventTimeInput.addEventListener('input', function () {
                 calculateDaysUntilEvent(recordId);
             });
         }
 
         document.addEventListener('DOMContentLoaded', function () {
-            // 加载后，新增记录时设置初始的周期(从数字+单位组合而来)和事件时间，并更新这两个字段时，更新距离事件天数字段
+            // 加载后，新增记录时设置初始的周期(从数字+单位组合而来)和事件时间，并更新距离事件天数字段(只与事件时间有关)
             const newPeriodNumInput = document.getElementById('period_num');
             const newPeriodUnitSelect = document.getElementById('period_unit');
             const newPeriodHiddenInput = document.getElementById('period');
@@ -196,7 +168,6 @@
                 const num = newPeriodNumInput.value;
                 const unit = newPeriodUnitSelect.value;
                 newPeriodHiddenInput.value = `${num}${unit}`;
-                calculateDaysUntilEvent();
             };
 
             newPeriodNumInput.addEventListener('input', updateNewPeriod);
