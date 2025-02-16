@@ -13,8 +13,12 @@ class UserRecord(models.Model):
     event_info = models.TextField()
     # 事件时间字段，默认为当前时间
     event_time = models.DateTimeField(null=True, blank=True)
+    # 周期类型字段
+    period_type = models.CharField(max_length=10)
     # 周期字段
     period = models.CharField(max_length=100)
+    # 提醒阈值
+    reminder_threshold = models.CharField(max_length=50)
 
     def __str__(self):
         return self.event_info

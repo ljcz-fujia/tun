@@ -41,6 +41,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
+            table-layout: fixed;
         }
 
         th,
@@ -49,6 +50,25 @@
             border: 1px solid #ccc;
             text-align: center; /* 让单元格内容水平居中 */
             vertical-align: middle; /* 让单元格内容垂直居中 */
+        }
+
+        td input,
+        td select {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        td input[name="period_num"],
+        td select[name="period_unit"] {
+            max-width: 50%;
+            box-sizing: border-box;
+        }
+
+        td.event_info_display {
+            max-width: 150px; /* 设置最大宽度 */
+            white-space: nowrap; /* 防止文本换行 */
+            overflow: hidden; /* 隐藏超出部分 */
+            text-overflow: ellipsis; /* 超出部分显示省略号 */
         }
 
         th {
@@ -86,6 +106,12 @@
         span[name="days_until_event"] {
             text-align: center; /* 水平居中 */
             line-height: normal; /* 垂直居中辅助，根据实际情况调整 */
+        }
+
+        textarea {
+            width: 100%;
+            box-sizing: border-box;
+            resize: vertical; /* 允许垂直调整大小 */
         }
     </style>
     <script>
@@ -199,12 +225,24 @@
     </div>
     <div class="container">
         <table>
+            <colgroup>
+                <col style="width: 5%;">
+                <col style="width: 30%;">
+                <col style="width: 15%;">
+                <col style="width: 7%;">
+                <col style="width: 15%;">
+                <col style="width: 8%;">
+                <col style="width: 10%;">
+                <col style="width: 10%;">
+            </colgroup>
             <thead>
                 <tr>
                     <th>类型</th>
                     <th>事件信息</th>
                     <th>事件时间</th>
+                    <th>周期类型</th>
                     <th>周期</th>
+                    <th>提醒阈值</th>
                     <th>距离事件天数</th>
                     <th>操作</th>
                 </tr>
@@ -214,10 +252,13 @@
                     <form method="post">
                         {% csrf_token %}
                         <td>{{ form.record_type }}</td>
-                        <td>{{ form.event_info }}</td>
+                        <td>
+                            <textarea name="event_info" rows="2" cols="50" placeholder="请输入事件信息"></textarea>
+                        </td>
                         <td>
                             <input type="datetime-local" id="event_time" name="event_time" required autocomplete="off">
                         </td>
+                        <td>{{ form.period_type }}</td>
                         <td>
                             <input type="number" id="period_num" name="period_num" min="0" value="0" required autocomplete="off">
                             <select id="period_unit" name="period_unit">
@@ -230,6 +271,7 @@
                             </select>
                             <input type="hidden" id="period" name="period">
                         </td>
+                        <td>{{ form.reminder_threshold }}</td>
                         <td><span name="days_until_event" id="days_until_event"></span></td>
                         <td>
                             <button type="submit">保存</button>
@@ -239,9 +281,11 @@
                 {% for record in records %}
                     <tr id="view-row-{{ record.id }}">
                         <td>{{ record.record_type }}</td>
-                        <td>{{ record.event_info }}</td>
+                        <td class="event_info_display">{{ record.event_info }}</td>
                         <td>{{ record.event_time|date:'Y-m-d H:i' }}</td>
+                        <td>{{ record.period_type }}</td>
                         <td>{{ record.period }}</td>
+                        <td>{{ record.reminder_threshold }}</td>
                         <td>{{ record.days_until_event }}</td>
                         <td>
                             <a href="#" onclick="showEditForm({{ record.id }}); populatePeriodAndEventTimeFields({{ record.id }}, '{{ record.period }}'); return false;">编辑</a>
@@ -253,9 +297,17 @@
                             {% csrf_token %}
                             <input type="hidden" name="action" value="edit">
                             <td><input type="text" name="record_type" value="{{ record.record_type }}" required autocomplete="off"></td>
-                            <td><input type="text" name="event_info" value="{{ record.event_info }}" required autocomplete="off"></td>
+                            <td>
+                                <textarea name="event_info" rows="2" cols="50" placeholder="请输入事件信息">{{ record.event_info }}</textarea>
+                            </td>
                             <td>
                                 <input type="datetime-local" id="event_time_{{ record.id }}" name="event_time" value="{{ record.event_time|date:'Y-m-d H:i' }}" required autocomplete="off">
+                            </td>
+                            <td>
+                                <select id="period_type_{{ record.id }}" name="period_type" value="{{ record.period_type }}">
+                                    <option value="公历">公历</option>
+                                    <option value="农历">农历</option>
+                                </select>
                             </td>
                             <td>
                                 <input type="number" id="period_num_{{ record.id }}" name="period_num" min="0" required autocomplete="off">
@@ -269,6 +321,7 @@
                                 </select>
                                 <input type="hidden" id="period_{{ record.id }}" name="period">
                             </td>
+                            <td><input type="text" name="reminder_threshold" value="{{ record.reminder_threshold }}" required autocomplete="off"></td>
                             <td><span name="days_until_event" id="days_until_event_{{ record.id }}"></span></td>
                             <td>
                                 <button type="submit">保存</button>
